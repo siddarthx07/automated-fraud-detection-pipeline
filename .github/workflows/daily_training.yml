@@ -1,0 +1,79 @@
+name: Daily ML Model Training
+
+on:
+  schedule:
+    # Runs at 2:00 AM UTC every day
+    - cron: '0 2 * * *'
+
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+    inputs:
+      reason:
+        description: 'Reason for manual training'
+        required: false
+        default: 'Manual trigger'
+
+jobs:
+  train-models:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120  # 2 hour timeout
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Display MongoDB connection status
+      run: |
+        echo "🔗 Connecting to MongoDB..."
+        echo "Training will use dataset version from MongoDB"
+
+    - name: Run model training
+      env:
+        MONGO_URI: ${{ secrets.MONGO_URI }}
+      run: |
+        echo "🚀 Starting training at $(date)"
+        python train_model.py
+        echo "✅ Training completed at $(date)"
+
+    - name: Upload trained models as artifacts
+      uses: actions/upload-artifact@v3
+      if: success()
+      with:
+        name: trained-models-${{ github.run_number }}
+        path: models/*.pkl
+        retention-days: 7
+
+    - name: Upload training logs
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: training-logs-${{ github.run_number }}
+        path: |
+          *.log
+          models/*.log
+        retention-days: 7
+        if-no-files-found: ignore
+
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "❌ Training failed! Check the logs above."
+        echo "Failure time: $(date)"
+        exit 1
+
+    - name: Summary
+      if: success()
+      run: |
+        echo "✅ Training completed successfully!"
+        echo "📊 Models uploaded to MongoDB"
+        echo "📦 Artifacts saved for 7 days"
