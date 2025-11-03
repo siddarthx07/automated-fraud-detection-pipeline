@@ -71,6 +71,3 @@ Add MongoDB secret:
 - Make sure `.env` file exists with correct MongoDB URI
 - Install all dependencies: `pip install -r requirements.txt`
 
-## License
-
-MIT
