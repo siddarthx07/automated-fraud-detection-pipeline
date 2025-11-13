@@ -4,7 +4,7 @@ Automated ML pipeline that trains fraud detection models daily at 2 AM using Git
 
 ## Features
 
-- **Daily Training** - Automatically runs at 2 AM UTC
+- **Daily Training** - Automatically runs at 2 AM EST
 - **5 ML Models** - Logistic Regression, Naive Bayes, Decision Tree, Random Forest, XGBoost
 - **MongoDB Integration** - Pulls latest data and stores trained models
 - **Metrics & Visualizations** - ROC curves, confusion matrices, feature importance
